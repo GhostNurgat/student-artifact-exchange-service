@@ -17,10 +17,6 @@ public class NoteController(AppDbContext context) : ControllerBase
     public async Task<IEnumerable<Note>> GetOpenNotes() =>
         await _context.Notes
             .Where(n => n.IsOpen)
-            .Include(n => n.NoteTags)
-            .ThenInclude(n => n.Tag)
-            .Include(n => n.NoteAccess)
-            .ThenInclude(n => n.User)
             .Include(n => n.Author)
             .ToListAsync();
 
@@ -29,8 +25,6 @@ public class NoteController(AppDbContext context) : ControllerBase
     {
         var note = await _context.Notes
             .Where(n => n.Id.Equals(id))
-            .Include(n => n.NoteAccess)
-            .ThenInclude(n => n.User)
             .Include(n => n.NoteTags)
             .ThenInclude(n => n.Tag)
             .Include(n => n.Author)
@@ -38,8 +32,10 @@ public class NoteController(AppDbContext context) : ControllerBase
             .FirstOrDefaultAsync();
         if (note == null) return NotFound();
 
-        var user = note.NoteAccess.FirstOrDefault(u => u.UserId.Equals(userId));
-        if (user == null && !note.IsOpen) return BadRequest();
+        var access = await _context.NoteAccesses
+            .Where(a => a.NoteId == id)
+            .ToListAsync();
+        if (!note.IsOpen && !access.Any(u => u.UserId == userId)) return Forbid();
 
         return Ok(note);
     }
@@ -48,20 +44,12 @@ public class NoteController(AppDbContext context) : ControllerBase
     public async Task<IEnumerable<Note>> GetAllNotesByUser(Guid userId) =>
         await _context.Notes
             .Where(n => n.Author.Id == userId && n.IsOpen)
-            .Include(n => n.NoteAccess)
-            .ThenInclude(n => n.User)
-            .Include(n => n.NoteTags)
-            .ThenInclude(n => n.Tag)
             .ToListAsync();
 
     [HttpGet]
     public async Task<IEnumerable<Note>> GetMyNotes(Guid userId) =>
         await _context.Notes
             .Where(n => n.Author.Id == userId)
-            .Include(n => n.NoteAccess)
-            .ThenInclude(n => n.User)
-            .Include(n => n.NoteTags)
-            .ThenInclude(n => n.Tag)
             .ToListAsync();
 
     [HttpPost]
@@ -209,16 +197,12 @@ public class NoteController(AppDbContext context) : ControllerBase
     {
         var openNotes = await _context.Notes
             .Where(n => n.IsOpen)
-            .Include(n => n.Author)
             .Include(n => n.NoteTags)
-            .ThenInclude(n => n.Tag)
+            .ThenInclude(nt => nt.Tag)
             .ToListAsync();
 
-        
         foreach (var tagName in tagNames)
-        {
-            openNotes = openNotes.Where(n => n.NoteTags.Any(t => t.Tag.Name == tagName)).ToList();
-        }
+            openNotes = openNotes.Where(n => n.NoteTags.Any(nt => nt.Tag.Name == tagName)).ToList();
 
         return openNotes;
     }
@@ -227,13 +211,13 @@ public class NoteController(AppDbContext context) : ControllerBase
     public async Task<IEnumerable<Note>> UserNotesByTags(Guid userId, [FromQuery]List<string> tagNames)
     {
         var userNotes = await _context.Notes
-            .Where(n => n.Author.Id == userId)
+            .Where(n => n.Author.Id == userId && n.IsOpen)
             .Include(n => n.NoteTags)
-            .ThenInclude(n => n.Tag)
+            .ThenInclude(nt => nt.Tag)
             .ToListAsync();
-        
+
         foreach (var tagName in tagNames)
-            userNotes = userNotes.Where(n => n.NoteTags.Any(t => t.Tag.Name == tagName)).ToList();
+            userNotes = userNotes.Where(n => n.NoteTags.Any(nt => nt.Tag.Name == tagName)).ToList();
         
         return userNotes;
     }
