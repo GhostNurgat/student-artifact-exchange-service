@@ -5,11 +5,12 @@ WORKDIR /app
 
 # Копируем только csproj файл и выполняем restore.
 COPY *.csproj ./  
+RUN df -h
 RUN dotnet restore Artifact_Service_Api.csproj 
 
 # Копируем остальные файлы.
 COPY . .
-
+RUN df -h
 # Собираем проект.
 RUN dotnet build "Artifact_Service_Api.csproj" -c Release -o /app/build
 
