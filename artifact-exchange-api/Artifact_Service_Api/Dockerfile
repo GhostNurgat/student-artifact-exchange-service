@@ -7,12 +7,12 @@ WORKDIR /api
 RUN df -h
 RUN pwd
 RUN ls -la
-RUN dotnet restore "./Artifact_Service_Api.csproj"
+RUN dotnet restore "./artifact-exchange-api/Artifact_Service_Api/Artifact_Service_Api.csproj"
 
-RUN dotnet build "./Artifact_Service_Api.csproj" -c Release -o /app/build
+RUN dotnet build "./artifact-exchange-api/Artifact_Service_Api/Artifact_Service_Api.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "./Artifact_Service_Api.csproj" -c Release -o /app/publish
+RUN dotnet publish "./artifact-exchange-api/Artifact_Service_Api/Artifact_Service_Api.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
