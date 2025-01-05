@@ -68,7 +68,7 @@ public class NoteController(AppDbContext context) : ControllerBase
     public async Task<IActionResult> CreateNote([FromForm]SaveNoteRequest request)
     {
         Guid id = Guid.NewGuid();
-        var newPath = $"../wwwroot/noteFiles/{id}";
+        var newPath = $"FileStorage/Notes/{id}";
         var dirInfo = new DirectoryInfo(newPath);
         if (!dirInfo.Exists) dirInfo.Create();
 
@@ -97,7 +97,7 @@ public class NoteController(AppDbContext context) : ControllerBase
         {
             foreach (var file in request.Files)
             {
-                var path = $"../wwwroot/noteFiles/{note.Id}/{file.FileName}";
+                var path = $"FileStorage/Notes/{note.Id}/{file.FileName}";
                 using (var fs = new FileStream(path, FileMode.Create))
                 {
                     await file.CopyToAsync(fs);
@@ -168,7 +168,7 @@ public class NoteController(AppDbContext context) : ControllerBase
         {
             if (note.Files.Any(f => f.CustomFileName == file.FileName)) continue;
 
-            var path = $"../wwwroot/noteFiles/{note.Id}/{file.FileName}";
+            var path = $"FileNotes/Notes/{note.Id}/{file.FileName}";
             using (var fs = new FileStream(path, FileMode.Create))
             {
                 await file.CopyToAsync(fs);
@@ -195,7 +195,7 @@ public class NoteController(AppDbContext context) : ControllerBase
             .FirstOrDefaultAsync(n => n.Id == id);
         if (note == null) return NotFound();
 
-        var path = $"../wwwroot/noteFiles/{id}";
+        var path = $"FileStorage/Notes/{id}";
         var dirInfo = new DirectoryInfo(path);
         if (dirInfo.Exists) dirInfo.Delete(true);
 

@@ -15,7 +15,7 @@ namespace Artifact_Service_Api.Service
 
         private Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnv;
         //костыль надо исправить 
-        private readonly string _storagePath = "C:\\Users\\gglol\\Desktop\\student-artifact-exchange-service\\artifact-exchange-api\\Artifact_Service_Api\\FileStorage\\";
+        private readonly string _storagePath = "FileStorage";
 
 
         public FileStorageSercvice(Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
