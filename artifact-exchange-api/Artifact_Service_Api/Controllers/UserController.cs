@@ -25,9 +25,9 @@ namespace Artifact_Service_Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(RegisterRequest request)
         {
-            var token = await _userService.Login(email, password);
+            var token = await _userService.Login(request.Email, request.Password);
 
             HttpContext.Response.Cookies.Append("cokes", token);
             return Ok(token); 
