@@ -152,20 +152,24 @@ public class NoteController(AppDbContext context) : ControllerBase
                 TagId = tag.Id
             });
         }
-        foreach (var file in request.Files)
+
+        if (request.Files != null)
         {
-            if (note.Files.Any(f => f.CustomFileName == file.FileName)) continue;
-
-            var path = $"FileNotes/Notes/{note.Id}/{file.FileName}";
-            using (var fs = new FileStream(path, FileMode.Create))
+            foreach (var file in request.Files)
             {
-                await file.CopyToAsync(fs);
-            }
+                if (note.Files.Any(f => f.CustomFileName == file.FileName)) continue;
 
-            note.Files.Add(new Models.File {
-                Id = Guid.NewGuid(),
-                CustomFileName = file.FileName 
-            });
+                var path = $"FileNotes/Notes/{note.Id}/{file.FileName}";
+                using (var fs = new FileStream(path, FileMode.Create))
+                {
+                    await file.CopyToAsync(fs);
+                }
+
+                note.Files.Add(new Models.File {
+                    Id = Guid.NewGuid(),
+                    CustomFileName = file.FileName 
+                });
+            }
         }
 
         _context.Notes.Update(note);
